@@ -11,10 +11,10 @@ class Settings(BaseSettings):
 
     # Приоритет моделей (первая доступная = самая приоритетная)
     model_priority: list[str] = [
-        "nemotron-ultra-free",
+        "deepseek-v4-flash-free",
         "nemotron-super-or",
         "gpt-oss-or",
-        "deepseek-v4-flash-free",
+        "nemotron-ultra-free",
         "llama-70b-or",
         "qwen-coder-or",
         "gemma-31b-or",
