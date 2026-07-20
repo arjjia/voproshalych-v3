@@ -54,9 +54,12 @@ flowchart LR
             LOBE --- RICH_TRACE
         end
 
-        BOTVK["🐳 bot-vk"]:::container_br
-        BOTMAX["🐳 bot-max"]:::container_br
-        BOTTELEGRAM["🐳 bot-telegram 🚀<br/>(M1)"]:::growth
+        subgraph BotService["bot-service/"]
+            BOTCORE["🐳 core/ (:8000)<br/>FastAPI — бизнес-логика<br/>маршрутизация, контекст,<br/>пользователи, подписки,<br/>фидбек, рассылка"]:::container_ms
+            BOTVK["🐳 bots/vk/<br/>Мост ВКонтакте"]:::container_br
+            BOTMAX["🐳 bots/max/<br/>Мост MAX"]:::container_br
+            BOTTELEGRAM["🐳 bots/telegram/ 🚀<br/>(M1)"]:::growth
+        end
     end
 
     %% ═══════════════════════════════════════════════════════
@@ -221,13 +224,17 @@ flowchart LR
     AUTH -. "OIDC ⛔" .-> SSOTYUMNU
 
     %% ═══════════════════════════════════════════════════════
-    %% СВЯЗИ: Клиентские интерфейсы → Agent-service (FastAPI)
+    %% СВЯЗИ: Клиентские интерфейсы → bot-core / Agent-service
     %% ═══════════════════════════════════════════════════════
     LOBE -- "POST /v1/chat/completions<br/>(FastAPI)<br/>+ JWT {sub, roles, scopes} 🚀" --> MW
-    BOTVK -- "POST /chat (FastAPI)" --> MW
-    BOTMAX -- "POST /chat (FastAPI)" --> MW
-    BOTTELEGRAM -- "POST /chat 🚀" --> MW
+    BOTVK -- "POST /messages<br/>IncomingMessage" --> BOTCORE
+    BOTMAX -- "POST /messages<br/>IncomingMessage" --> BOTCORE
+    BOTTELEGRAM -- "POST /messages 🚀" --> BOTCORE
+    BOTCORE -- "POST /chat<br/>запрос + контекст" --> MW
     MW -. "SSE + rich-trace 🚀<br/>+ permission_prompt ⛔" .-> LOBE
+    BOTCORE -. "BotResponse (actions[])" .-> BOTVK
+    BOTCORE -. "BotResponse (actions[])" .-> BOTMAX
+    BOTCORE -. "BotResponse (actions[]) 🚀" .-> BOTTELEGRAM
 
     %% LobeHub → PostgreSQL
     LOBE -- "SQL: sessions, messages" --> PG

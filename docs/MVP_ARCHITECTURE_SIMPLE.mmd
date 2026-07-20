@@ -43,8 +43,11 @@ flowchart LR
             LOBE -. "опционально" .-> AUTH
         end
 
-        BOTVK["🐳 bot-vk<br/>Мост ВКонтакте"]:::container_br
-        BOTMAX["🐳 bot-max<br/>Мост MAX"]:::container_br
+        subgraph BotService["bot-service/"]
+            BOTCORE["🐳 core/ (:8000)<br/>FastAPI — бизнес-логика<br/>маршрутизация, контекст,<br/>пользователи, подписки,<br/>фидбек, рассылка"]:::container_ms
+            BOTVK["🐳 bots/vk/<br/>Мост ВКонтакте"]:::container_br
+            BOTMAX["🐳 bots/max/<br/>Мост MAX"]:::container_br
+        end
     end
 
     %% ═══════════════════════════════════════════════════════
@@ -164,12 +167,15 @@ flowchart LR
     BOTMAX -. "MAX API исходящее" .-> USER_MAX
 
     %% ═══════════════════════════════════════════════════════
-    %% СВЯЗИ: Клиентские интерфейсы → Agent-service (FastAPI)
+    %% СВЯЗИ: Клиентские интерфейсы → bot-core (business logic)
     %% ═══════════════════════════════════════════════════════
     LOBE -- "POST /v1/chat/completions<br/>(FastAPI)<br/>+ X-User-Id 🆕, X-User-Role 🆕" --> MW
-    BOTVK -- "POST /chat<br/>(FastAPI, анонимно)" --> MW
-    BOTMAX -- "POST /chat<br/>(FastAPI, анонимно)" --> MW
+    BOTVK -- "POST /messages<br/>IncomingMessage" --> BOTCORE
+    BOTMAX -- "POST /messages<br/>IncomingMessage" --> BOTCORE
+    BOTCORE -- "POST /chat<br/>запрос + контекст" --> MW
     MW -. "SSE response" .-> LOBE
+    BOTCORE -. "BotResponse (actions[])" .-> BOTVK
+    BOTCORE -. "BotResponse (actions[])" .-> BOTMAX
 
     %% LobeHub → PostgreSQL
     LOBE -- "SQL: sessions,<br/>messages, users" --> PG
