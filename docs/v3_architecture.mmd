@@ -1,0 +1,103 @@
+flowchart TB
+    %% Styles
+    classDef interface fill:#E3F2FD,stroke:#1565C0,stroke-width:3px,color:#0D47A1
+    classDef adapt fill:#E0F7FA,stroke:#006064,stroke-width:3px,color:#004D40
+    classDef core fill:#B3E5FC,stroke:#0277BD,stroke-width:3px,color:#0277BD
+    classDef ms fill:#E8F5E9,stroke:#2E7D32,stroke-width:3px,color:#1B5E20
+    classDef gateway fill:#FFF3E0,stroke:#E65100,stroke-width:3px,color:#BF360C
+    classDef storage fill:#FFEBEE,stroke:#C62828,stroke-width:3px,color:#B71C1C
+    classDef tool fill:#E0F2F1,stroke:#00695C,stroke-width:3px,color:#004D40
+    classDef client fill:#ECEFF1,stroke:#546E7A,stroke-width:2px,color:#263238
+    classDef provider fill:#F3E5F5,stroke:#6A1B9A,stroke-width:2px,color:#4A148C
+    classDef external fill:#FFFDE7,stroke:#F9A825,stroke-width:2px,color:#F57F17
+    classDef future fill:#E8EAF6,stroke:#3F51B5,stroke-width:2px,stroke-dasharray:5 5,color:#1A237E
+
+    %% ==============================
+    %% ПОЛЬЗОВАТЕЛИ
+    %% ==============================
+    subgraph Users["👤 Пользователи"]
+        STUDENT["Студент<br/>браузер · VK · MAX"]:::client
+    end
+
+    %% ==============================
+    %% ИНТЕРФЕЙСЫ
+    %% ==============================
+    subgraph Interfaces["🖥️ Интерфейсы"]
+        LOBE["lobe-chat :3210<br/>Чат-интерфейс"]:::interface
+
+        subgraph BotService["bot-service/"]
+            BVK["bots/vk/<br/>VK адаптер"]:::adapt
+            BMX["bots/max/<br/>MAX адаптер"]:::adapt
+        end
+    end
+
+    %% ==============================
+    %% БИЗНЕС-ЛОГИКА
+    %% ==============================
+    subgraph Core["🧠 Бизнес-логика и оркестрация"]
+        BC["bot-service/core/ :8000<br/>Бизнес-логика<br/>BotService, AgentServiceClient, DialogService, FeedbackService, UserService"]:::core
+
+        AS["agent-service :8001<br/>LangGraph оркестратор<br/>Supervisor, kb_workflow, meta, react, clarify, off_topic"]:::ms
+    end
+
+    %% ==============================
+    %% ЗНАНИЯ
+    %% ==============================
+    subgraph Knowledge["🔧 Сервисы знаний и инструменты"]
+        subgraph MCP["mcp-серверы"]
+            MCPKB["mcp-kb :9010<br/>Поиск по БЗ"]:::tool
+            MCPN["mcp-news :9011<br/>Новости · события"]:::tool
+            MCPF["mcp-fetch :9015<br/>Загрузка URL"]:::tool
+        end
+
+        KB["kb-service :8005<br/>Векторный поиск + парсеры<br/>parsers, embedding, chunking, search, preprocessing, tools"]:::ms
+    end
+
+    %% ==============================
+    %% ИНФРАСТРУКТУРА
+    %% ==============================
+    subgraph Infra["💾 Инфраструктура"]
+        LLM["litellm :4000<br/>LLM-шлюз"]:::gateway
+        PG["postgres :5433<br/>PostgreSQL 17 · pgvector"]:::storage
+        RD["redis :6380<br/>Кэш"]:::storage
+    end
+
+    %% ==============================
+    %% ВНЕШНИЕ
+    %% ==============================
+    subgraph External["🌐 Внешние источники"]
+        EXTSRC["Источники (веб-страницы)<br/>Confluence, utmn.ru"]:::external
+        LLM_EXT["LLM провайдеры<br/>ZEN, Mistral, OpenRouter"]:::provider
+    end
+
+    %% ==============================
+    %% СВЯЗИ
+    %% ==============================
+    STUDENT --> LOBE
+    STUDENT --> BVK
+    STUDENT --> BMX
+
+    BVK --> BC
+    BMX --> BC
+    LOBE --> AS
+    BC --> AS
+
+    AS --> MCPKB
+    AS --> MCPN
+    AS --> MCPF
+    AS --> KB
+    AS --> LLM
+
+    MCPKB --> KB
+    MCPN --> EXTSRC
+    MCPF --> EXTSRC
+
+    KB --> PG
+    KB --> EXTSRC
+
+    LLM --> LLM_EXT
+    LLM -.-> RD
+    LLM --> PG
+
+    LOBE --> PG
+    BC --> PG
