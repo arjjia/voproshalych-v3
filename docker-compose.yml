@@ -182,6 +182,39 @@ services:
     networks:
       - v3-net
 
+  bot-core:
+    build:
+      context: ./bot-service/core
+      dockerfile: Dockerfile
+    container_name: v3-bot-core
+    restart: unless-stopped
+    ports:
+      - "${BOT_CORE_PORT:-8000}:8000"
+    env_file:
+      - .env
+    environment:
+      BOT_CORE_APP_NAME: ${BOT_CORE_APP_NAME:-bot-core}
+      BOT_CORE_APP_VERSION: ${BOT_CORE_APP_VERSION:-0.1.0}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-voproshalych}
+      POSTGRES_USER: ${POSTGRES_USER:-voproshalych}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-voproshalych}
+      AGENT_SERVICE_URL: http://agent-service:8001
+      AGENT_SERVICE_TIMEOUT_SECONDS: ${AGENT_SERVICE_TIMEOUT_SECONDS:-300}
+      DIALOG_CONTEXT_MAX_CHARS: ${DIALOG_CONTEXT_MAX_CHARS:-3000}
+      DIALOG_CONTEXT_MAX_MESSAGES: ${DIALOG_CONTEXT_MAX_MESSAGES:-3}
+      HOLIDAY_NEWSLETTER_ENABLED: ${HOLIDAY_NEWSLETTER_ENABLED:-true}
+      HOLIDAY_NEWSLETTER_RUN_HOUR: ${HOLIDAY_NEWSLETTER_RUN_HOUR:-9}
+      HOLIDAY_NEWSLETTER_RUN_MINUTE: ${HOLIDAY_NEWSLETTER_RUN_MINUTE:-0}
+    depends_on:
+      agent-service:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    networks:
+      - v3-net
+
   lobe-chat:
     build:
       context: ../
@@ -218,33 +251,33 @@ services:
 
   bot-vk:
     build:
-      context: ./bot-vk
+      context: ./bot-service/bots/vk
       dockerfile: Dockerfile
     container_name: v3-bot-vk
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      BOT_CORE_URL: http://agent-service:8001
+      BOT_CORE_URL: http://bot-core:8000
       BOT_CORE_TIMEOUT_SECONDS: "60"
     depends_on:
-      - agent-service
+      - bot-core
     networks:
       - v3-net
 
   bot-max:
     build:
-      context: ./bot-max
+      context: ./bot-service/bots/max
       dockerfile: Dockerfile
     container_name: v3-bot-max
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      BOT_CORE_URL: http://agent-service:8001
+      BOT_CORE_URL: http://bot-core:8000
       BOT_CORE_TIMEOUT_SECONDS: "60"
     depends_on:
-      - agent-service
+      - bot-core
     networks:
       - v3-net
 
