@@ -86,7 +86,7 @@ flowchart TB
     %% ==============================
     subgraph Infra["💾 Инфраструктура"]
         LLM["litellm :4000<br/>LLM-шлюз"]:::gateway
-        PG["postgres :5433<br/>PostgreSQL 17 · pgvector<br/>users, sessions, messages, questions_answers, chunks, embeddings, subscriptions, holidays, telemetry_logs, agent_traces, admin_tasks, admin_task_reports, admin_task_report_items, kb_chunks, kb_embeddings"]:::storage
+        PG["postgres :5433<br/>PostgreSQL 17 · pgvector + AGE<br/>Схемы: public (voproshalych + LightRAG), ag_catalog (AGE)"]:::storage
         DBM["db-migrate<br/>Миграции Alembic"]:::migrate
         RD["redis :6380<br/>Кэш"]:::storage
     end
