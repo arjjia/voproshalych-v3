@@ -38,6 +38,7 @@ flowchart TB
   classDef client fill:#ECEFF1,stroke:#546E7A,stroke-width:2px,color:#263238
   classDef provider fill:#F3E5F5,stroke:#6A1B9A,stroke-width:2px,color:#4A148C
   classDef external fill:#FFFDE7,stroke:#F9A825,stroke-width:2px,color:#F57F17
+  classDef migrate fill:#E0E0E0,stroke:#757575,stroke-width:2px,color:#424242
 
   subgraph Legend["📋 Легенда — v3 архитектура"]
 
@@ -49,12 +50,14 @@ flowchart TB
       L5["litellm :4000<br/>LLM-шлюз"]:::gateway
       L6["mcp-* :9010–9015<br/>Tool-сервис"]:::tool
       L7["postgres · redis<br/>Хранилище"]:::storage
+      L8["db-migrate<br/>Миграции"]:::migrate
       L1 --- L2
       L2 --- L3
       L3 --- L4
       L4 --- L5
       L5 --- L6
       L6 --- L7
+      L7 --- L8
     end
 
     subgraph Other["Остальные элементы"]

@@ -38,6 +38,7 @@ flowchart TB
     classDef client fill:#ECEFF1,stroke:#546E7A,stroke-width:2px,color:#263238
     classDef provider fill:#F3E5F5,stroke:#6A1B9A,stroke-width:2px,color:#4A148C
     classDef external fill:#FFFDE7,stroke:#F9A825,stroke-width:2px,color:#F57F17
+    classDef migrate fill:#E0E0E0,stroke:#757575,stroke-width:2px,color:#424242
 
     %% ==============================
     %% ПОЛЬЗОВАТЕЛИ
@@ -85,7 +86,8 @@ flowchart TB
     %% ==============================
     subgraph Infra["💾 Инфраструктура"]
         LLM["litellm :4000<br/>LLM-шлюз"]:::gateway
-        PG["postgres :5433<br/>PostgreSQL 17 · pgvector"]:::storage
+        PG["postgres :5433<br/>PostgreSQL 17 · pgvector<br/>users, sessions, messages, questions_answers, chunks, embeddings, subscriptions, holidays, telemetry_logs, agent_traces, admin_tasks, admin_task_reports, admin_task_report_items, kb_chunks, kb_embeddings"]:::storage
+        DBM["db-migrate<br/>Миграции Alembic"]:::migrate
         RD["redis :6380<br/>Кэш"]:::storage
     end
 
@@ -128,3 +130,5 @@ flowchart TB
 
     LOBE --> PG
     BC --> PG
+
+    DBM --> PG
